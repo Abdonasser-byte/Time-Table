@@ -57,7 +57,6 @@ class ReadTopics:
             FROM COURSES_ACTIVITY_DETAILS CAD
             LEFT JOIN EMPLOYEES E
             ON CAD.EMPLOYEE_ID = E.EMPLOYEE_ID
-            WHERE CAD.ACTIVITY_TYPE = 'LECTURE'
             GROUP BY CAD.EMPLOYEE_ID , E.EMPLOYEE_NAME
         """
         cursor.execute(query)
@@ -138,9 +137,8 @@ class ReadTopics:
         FROM  COURSES C
         INNER JOIN STUDY_PLANS_COURSES E ON C.COURSE_ID = E.COURSE_ID
         INNER JOIN STUDY_PLAN_LEVEL_SEC S ON S.PLAN_LEVEL_SEC_ID = E.PLAN_LEVEL_SPEC_ID
-        INNER JOIN COURSES_ACTIVITY_DETAILS A ON A.COURSE_ID = c.COURSE_ID
         LEFT JOIN  STUDENTS_SEMESTERS_COURSES SSC  ON C.COURSE_ID = SSC.ACTUAL_COURSE_ID   AND SSC.SEMESTER_ID = 77
-        WHERE S.PLAN_ID >= 133 AND MOD(S.LEVEL_ID, 2) = 0 AND A.ACTIVITY_TYPE = 'LECTURE'
+        WHERE S.PLAN_ID >= 132 AND MOD(S.LEVEL_ID, 2) = 1 
         GROUP BY C.COURSE_ID,  C.COURSE_CODE, C.COURSE_NAME_EN, C.COURSE_NAME_AR, C.DEFAULT_LECTURE_HOURS, C.DEFAULT_LAB_HOURS,C.SECTION_ID
         """
         cursor.execute(query)
@@ -167,13 +165,31 @@ class ReadTopics:
 
         cursor = self.connection.cursor()
         query = """
-            SELECT
-                PLAN_LEVEL_SEC_ID,
-                PLAN_ID,
-                SECTION_ID,
-                LEVEL_ID
-            FROM
-                STUDY_PLAN_LEVEL_SEC
+            SELECT s.PLAN_LEVEL_SEC_ID,
+            s.PLAN_ID,
+            s. SECTION_ID,
+            s. LEVEL_ID
+            FROM STUDY_PLAN_LEVEL_SEC S
+            INNER JOIN
+            (SELECT DISTINCT S1.PLAN_ID,
+                S1.LEVEL_ID ,
+                P.PLAN_YEAR
+            FROM STUDY_PLAN_LEVEL_SEC S1,
+                STUDY_PLANS P
+            WHERE S1.PLAN_ID                = P.PLAN_ID
+            AND (P.PLAN_YEAR, S1.LEVEL_ID) IN
+                (SELECT 2024              - ROWNUM + 1 TRGT_YEAR,
+                CASE
+                    WHEN 1 = 0
+                    THEN ROWNUM * 2
+                    ELSE ROWNUM * 2 - 1
+                END TRGT_LEVEL
+                FROM DUAL
+                CONNECT BY LEVEL <= 5
+                )
+            ) QS
+            ON QS.PLAN_ID   = S.PLAN_ID
+            AND QS.LEVEL_ID = S.LEVEL_ID
         """
         cursor.execute(query)
         for row in cursor:
@@ -184,7 +200,7 @@ class ReadTopics:
                 'LEVEL_ID': int(row[3])
             }
             plan_level_sections_Level_id[row_data['PLAN_LEVEL_SEC_ID']] = [row_data['LEVEL_ID']]
-            if row_data['PLAN_ID'] >= 133 and row_data['PLAN_ID'] <= 142  :
+            if row_data['PLAN_ID'] >= 132  :
                 Plan_Level.append(row_data)
         cursor.close()
         return Plan_Level, plan_level_sections_Level_id
@@ -210,12 +226,12 @@ class ReadTopics:
 
         cursor = self.connection.cursor()
         query = """
-            SELECT E.PLAN_LEVEL_SPEC_ID, A.COURSE_ID
+            SELECT E.PLAN_LEVEL_SPEC_ID, E.COURSE_ID
         FROM STUDY_PLAN_LEVEL_SEC S
         INNER JOIN STUDY_PLANS_COURSES E ON S.PLAN_LEVEL_SEC_ID = E.PLAN_LEVEL_SPEC_ID
-        INNER JOIN COURSES_ACTIVITY_DETAILS A ON A.COURSE_ID = E.COURSE_ID
-        WHERE S.PLAN_ID >= 133 AND MOD(S.LEVEL_ID, 2) = 0
-        group BY E.PLAN_LEVEL_SPEC_ID, A.COURSE_ID
+        WHERE S.PLAN_ID >= 132 AND MOD(S.LEVEL_ID, 2) = 1 
+        group BY E.PLAN_LEVEL_SPEC_ID, E.COURSE_ID
+        
         """
         cursor.execute(query)
         Plan_Courses = []
@@ -342,7 +358,7 @@ class ReadTopics:
         INNER JOIN STUDY_PLAN_LEVEL_SEC S ON S.PLAN_LEVEL_SEC_ID = E.PLAN_LEVEL_SPEC_ID
         INNER JOIN COURSES_ACTIVITY_DETAILS A ON A.COURSE_ID = c.COURSE_ID
         LEFT JOIN  STUDENTS_SEMESTERS_COURSES SSC  ON C.COURSE_ID = SSC.ACTUAL_COURSE_ID   AND SSC.SEMESTER_ID = 77
-        WHERE S.PLAN_ID >= 133 AND MOD(S.LEVEL_ID, 2) = 0 AND A.ACTIVITY_TYPE = 'SECTION'
+        WHERE S.PLAN_ID >= 132 AND MOD(S.LEVEL_ID, 2) = 1 AND A.ACTIVITY_TYPE = 'SECTION'
         GROUP BY C.COURSE_ID,  C.COURSE_CODE, C.COURSE_NAME_EN, C.COURSE_NAME_AR, C.DEFAULT_LECTURE_HOURS, C.DEFAULT_LAB_HOURS,C.SECTION_ID
         """
         cursor.execute(query)
@@ -372,7 +388,7 @@ class ReadTopics:
         INNER JOIN STUDY_PLAN_LEVEL_SEC S ON S.PLAN_LEVEL_SEC_ID = E.PLAN_LEVEL_SPEC_ID
         INNER JOIN COURSES_ACTIVITY_DETAILS A ON A.COURSE_ID = c.COURSE_ID
         LEFT JOIN  STUDENTS_SEMESTERS_COURSES SSC  ON C.COURSE_ID = SSC.ACTUAL_COURSE_ID   AND SSC.SEMESTER_ID = 77
-        WHERE S.PLAN_ID >= 133 AND MOD(S.LEVEL_ID, 2) = 0 AND A.ACTIVITY_TYPE = 'LABORATORY'
+        WHERE S.PLAN_ID >= 132 AND MOD(S.LEVEL_ID, 2) = 1 AND A.ACTIVITY_TYPE = 'LABORATORY'
         GROUP BY C.COURSE_ID,  C.COURSE_CODE, C.COURSE_NAME_EN, C.COURSE_NAME_AR, C.DEFAULT_LECTURE_HOURS, C.DEFAULT_LAB_HOURS,C.SECTION_ID
         """
         cursor.execute(query)

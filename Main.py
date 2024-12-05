@@ -56,6 +56,7 @@ validation_halls = ValidationHalls(all_halls)
 validation_labs = validateLabs.ValidationLabs(Labs)
 
 
+
 sections = readtopics.getAvailableSection()
 
 labs = readtopics.getAvailableLab()
@@ -72,7 +73,7 @@ appended_course_ids = set()
 
 courseTimeHall = {}
 
-print("Size of Plan_Courses:", len(plan_courses_dict))
+print("Size of Plan_Courses:", len(Plan_Level))
 print("Size of all_halls:", len(all_halls))
 print("Size of teachers:", len(teachers))
 print("Size of courses:", len(courses))
@@ -109,7 +110,7 @@ for key,valu in plan_courses_dict.items() :
     for course in courses :
         for planx in valu :
 
-            if (planx ==  course.get_course_id() ) and planx not in appended_course_ids and course.get_lecture_hours() > 0:
+            if (planx ==  course.get_course_id() ) and planx not in appended_course_ids :
                 final_course.append(course )
                 section = get_course_from_sections(course.get_course_id() , sections)
                 lab = get_course_from_labs(course.get_course_id() ,labs)
@@ -142,12 +143,13 @@ for key,valu in plan_courses_dict.items() :
 
 
 
-
+print(len(courseTimeHall))
 
 idx= 0 
 file_path = r'D:\time_table.csv'
-
+flag = 0
 for key,valu in plan_courses_dict.items() :
+    flag += 1
     allCourses = []
     for course in valu:
         list = get_entries_by_course_ids(course,all_courses_generated)
@@ -159,4 +161,6 @@ for key,valu in plan_courses_dict.items() :
 # print( len(courseTimeHall)  , " "  , len(teachers) , " " , len(appended_course_ids) , " " , len(sections) , coL  , coS , sum , "\n" ,plan_courses_dict_generated) 
 
 
+
+print(flag)
 connection.close()

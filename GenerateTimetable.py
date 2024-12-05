@@ -58,11 +58,22 @@ class GenerateTimeTable :
             linked_teacher_id = None
             teacher = None
             if(course.get_type() == 0 ):
-                linked_teacher_id = next(link._teacher_id for link in course_teacher_links if link._course_id == course.get_course_id())
+                for link in course_teacher_links:
+                    if link._course_id == course.get_course_id():
+                        linked_teacher_id = link._teacher_id
+
+                if(linked_teacher_id == None):
+                    return False
                 teacher = next(t for t in teachers if t._id == linked_teacher_id)
             
             if(course.get_type() != 0 ):
-                linked_teacher_id = next(link._teacher_id for link in course_assistance_link if link._course_id == course.get_course_id())
+                for link in course_assistance_link:
+                    if link._course_id == course.get_course_id():
+                        linked_teacher_id = link._teacher_id
+
+                if(linked_teacher_id == None):
+                    return False
+                
                 teacher = next(t for t in assistant if t._id == linked_teacher_id)
 
             for day in teacher.get_available_days():
